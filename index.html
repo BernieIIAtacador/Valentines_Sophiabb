@@ -1,0 +1,1099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Valentine's Surprise</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            min-height: 100vh;
+            min-height: -webkit-fill-available;
+            overflow: hidden;
+            position: fixed;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Floating Hearts Background */
+        .hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .heart {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.3);
+            animation: float 15s infinite;
+            font-size: 20px;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Screen Container */
+        .screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            height: -webkit-fill-available;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1s ease-in-out, visibility 1s;
+            z-index: 10;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            cursor: pointer;
+        }
+
+        .screen.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Text Styling */
+        .message {
+            font-size: clamp(1.8rem, 6vw, 3.5rem);
+            color: white;
+            text-align: center;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            line-height: 1.3;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 1.2s ease-out, transform 1.2s ease-out;
+            pointer-events: none;
+        }
+
+        .message.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .sub-message {
+            font-size: clamp(0.9rem, 3vw, 1.3rem);
+            color: rgba(255, 255, 255, 0.95);
+            margin-top: 15px;
+            font-weight: 300;
+            opacity: 0;
+            transition: opacity 1s ease-out 0.5s;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .sub-message.visible {
+            opacity: 1;
+        }
+
+        /* FIXED: Click hint positioning for all screens *
+
+        /* GIF Container */
+        .gif-container {
+            margin-top: 20px;
+            opacity: 0;
+            transform: scale(0.8);
+            transition: opacity 1s ease-out 0.8s, transform 1s ease-out 0.8s;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            max-width: 80%;
+            width: 100%;
+            max-height: 35vh;
+            pointer-events: none;
+        }
+
+        .gif-container.visible {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .gif-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        /* Skip Button */
+        .skip-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid white;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            z-index: 105;
+            opacity: 0;
+            transition: opacity 0.3s, background 0.3s;
+        }
+
+        .skip-btn.visible {
+            opacity: 1;
+        }
+
+        .skip-btn:active {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Video Container */
+        .video-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1s ease-in-out, visibility 1s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .video-container.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 101;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .play-overlay.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .play-button {
+            width: 70px;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s, background 0.3s;
+        }
+
+        .play-button:active {
+            transform: scale(0.95);
+        }
+
+        .play-button svg {
+            width: 25px;
+            height: 25px;
+            fill: #ff6b9d;
+            margin-left: 3px;
+        }
+
+        .video-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 15px;
+            border-radius: 25px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 102;
+        }
+
+        .video-container:hover .video-controls,
+        .video-container:active .video-controls {
+            opacity: 1;
+        }
+
+        .control-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 5px;
+            min-width: 30px;
+        }
+
+        .control-btn:active {
+            transform: scale(0.9);
+        }
+
+        .progress-bar {
+            width: 150px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #ff6b9d;
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.1s;
+        }
+
+        .loading {
+            color: white;
+            font-size: 1.1rem;
+            position: absolute;
+            z-index: 103;
+        }
+
+        /* Question Screen - FIXED LAYOUT */
+        .question-screen {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            justify-content: flex-start;
+            padding-top: 10vh;
+            cursor: default;
+        }
+
+        .question-text {
+            font-size: clamp(1.8rem, 7vw, 3.5rem);
+            color: white;
+            text-align: center;
+            font-weight: 700;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.3);
+            margin-bottom: 8px;
+            animation: pulse 2s infinite;
+            padding: 0 15px;
+            line-height: 1.2;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .side-note {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 30px;
+            font-style: italic;
+            pointer-events: none;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+
+        .buttons-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 100%;
+            max-width: 350px;
+            min-height: 250px;
+            padding: 20px 0;
+            margin-top: 10px;
+        }
+
+        /* FIXED: Beg text positioned below side-note, not overlapping */
+        .beg-text {
+            position: absolute;
+            top: -70px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s;
+            width: 95%;
+            max-width: 300px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            z-index: 5;
+            pointer-events: none;
+            background: rgba(255, 107, 157, 0.9);
+            padding: 10px 15px;
+            border-radius: 15px;
+            line-height: 1.3;
+        }
+
+        .beg-text.visible {
+            opacity: 1;
+        }
+
+        .btn {
+            padding: 20px 50px;
+            font-size: 1.4rem;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            z-index: 10;
+            min-width: 150px;
+            touch-action: manipulation;
+        }
+
+        .btn-yes {
+            background: #ff6b9d;
+            color: white;
+            box-shadow: 0 10px 30px rgba(255, 107, 157, 0.4);
+            margin-bottom: 5px;
+        }
+
+        .btn-yes:active {
+            transform: scale(0.95);
+        }
+
+        .btn-no {
+            background: white;
+            color: #ff6b9d;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+            transition: all 0.4s ease-out;
+            margin-top: 5px;
+        }
+
+        .btn-no.transformed {
+            background: #ff6b9d;
+            color: white;
+            transform: scale(1.2) !important;
+            box-shadow: 0 10px 30px rgba(255, 107, 157, 0.4);
+            opacity: 1 !important;
+        }
+
+        /* Thank You Screen */
+        .thank-you-screen {
+            cursor: pointer;
+        }
+
+        .thank-you-text {
+            font-size: clamp(1.5rem, 6vw, 3rem);
+            color: white;
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding: 0 20px;
+            pointer-events: none;
+        }
+
+        .cat-gif-container {
+            width: 200px;
+            height: 200px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .cat-gif-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Letter Screen */
+        .letter-screen {
+            background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+            padding: 20px;
+            cursor: default;
+        }
+
+        .envelope-container {
+            position: relative;
+            width: 100%;
+            max-width: 350px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .envelope {
+            width: 280px;
+            height: 180px;
+            background: #ff6b9d;
+            position: relative;
+            border-radius: 10px;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: all 0.6s;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .envelope.open {
+            transform: rotateX(180deg) translateY(-50px);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: #ff85a7;
+            transform-origin: top;
+            transition: transform 0.4s;
+            clip-path: polygon(0 0, 50% 100%, 100% 0);
+            border-radius: 10px 10px 0 0;
+        }
+
+        .envelope.open .envelope-flap {
+            transform: rotateX(180deg);
+        }
+
+        .envelope-body {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ff6b9d;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .envelope-text {
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .click-hint-envelope {
+            color: #ff6b9d;
+            font-size: 0.9rem;
+            opacity: 0.8;
+            animation: pulse 2s infinite;
+        }
+
+        .letter {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.8);
+            width: 90%;
+            max-width: 400px;
+            max-height: 0;
+            background: white;
+            border-radius: 15px;
+            padding: 0 25px;
+            overflow: hidden;
+            opacity: 0;
+            transition: all 0.8s ease-out;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            font-family: 'Georgia', serif;
+            line-height: 1.6;
+            color: #333;
+            z-index: 20;
+        }
+
+        .letter.show {
+            max-height: 80vh;
+            padding: 25px;
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+            overflow-y: auto;
+        }
+
+        .letter h2 {
+            font-family: 'Poppins', sans-serif;
+            color: #ff6b9d;
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .letter p {
+            margin-bottom: 12px;
+            font-size: 1rem;
+        }
+
+        .letter-signature {
+            text-align: right;
+            margin-top: 20px;
+            font-style: italic;
+            color: #ff6b9d;
+            font-weight: 600;
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 400px) {
+            .click-hint, .tap-hint {
+                bottom: 8vh;
+                font-size: 0.8rem;
+                padding: 8px 15px;
+            }
+            
+            .question-screen {
+                padding-top: 8vh;
+            }
+            
+            .question-text {
+                font-size: 1.6rem;
+            }
+            
+            .side-note {
+                margin-bottom: 25px;
+                font-size: 0.85rem;
+            }
+            
+            .buttons-container {
+                min-height: 220px;
+                gap: 20px;
+                margin-top: 5px;
+            }
+            
+            /* FIXED: Better positioning for mobile beg text */
+            .beg-text {
+                top: -60px;
+                font-size: 0.85rem;
+                padding: 8px 12px;
+                max-width: 280px;
+            }
+            
+            .btn {
+                padding: 18px 40px;
+                font-size: 1.2rem;
+                min-width: 140px;
+            }
+            
+            .cat-gif-container {
+                width: 180px;
+                height: 180px;
+            }
+            
+            .envelope {
+                width: 240px;
+                height: 150px;
+            }
+            
+            .letter {
+                width: 95%;
+                padding: 20px;
+            }
+        }
+
+        @media (max-height: 700px) {
+            .click-hint, .tap-hint {
+                bottom: 6vh;
+            }
+            
+            .question-screen {
+                padding-top: 6vh;
+            }
+            
+            .gif-container {
+                max-height: 25vh;
+            }
+            
+            .buttons-container {
+                min-height: 200px;
+            }
+            
+            .side-note {
+                margin-bottom: 20px;
+            }
+            
+            .beg-text {
+                top: -55px;
+            }
+        }
+
+        /* PC/Desktop specific */
+        @media (min-width: 768px) {
+            .click-hint, .tap-hint {
+                bottom: 15vh;
+                font-size: 1.1rem;
+            }
+            
+            .beg-text {
+                top: -80px;
+                font-size: 1.2rem;
+                max-width: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Floating Hearts Background -->
+    <div class="hearts" id="hearts"></div>
+
+    <!-- Screen 1 - CLICK ANYWHERE -->
+    <div class="screen active" id="screen1" onclick="nextScreen(2)">
+        <div class="message">Hi Babyyy! 💕</div>
+        <div class="click-hint"></div>
+    </div>
+
+    <!-- Screen 2 - CLICK ANYWHERE -->
+    <div class="screen" id="screen2" onclick="nextScreen(3)">
+        <div class="message">I'm here to ask you to be my valentine! 💝</div>
+        <div class="click-hint"></div>
+    </div>
+
+    <!-- Screen 3 - CLICK ANYWHERE -->
+    <div class="screen" id="screen3" onclick="playVideo()">
+        <div class="message">But before that, watch this short presentation first hehe 🎬</div>
+        <div class="sub-message">(I made this just for you)</div>
+        <div class="gif-container" id="gifContainer">
+            <img src="https://media.tenor.com/KshIPrRS1aAAAAAM/cat-orange-cat.gif" alt="Cute GIF">
+        </div>
+        <div class="click-hint"></div>
+    </div>
+
+    <!-- Video Container - AUTO PLAY -->
+    <div class="video-container" id="videoContainer">
+        <button class="skip-btn" id="skipBtn" onclick="skipVideo()">Skip ⏭</button>
+        <div class="loading" id="loading"></div>
+        <video id="valentineVideo" playsinline preload="auto" muted>
+            <source src="https://github.com/BernieIIAtacador/valentine-vid-and-shi/raw/refs/heads/main/REASONS%20WHY%20YOU%20SHOULD%20BE%20MY%20VALENTINE%20(1).mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        
+        <div class="play-overlay" id="playOverlay" onclick="togglePlay()">
+            <div class="play-button">
+                <svg viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="video-controls">
+            <button class="control-btn" onclick="togglePlay()" id="playPauseBtn">⏸</button>
+            <div class="progress-bar" onclick="seek(event)">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <button class="control-btn" onclick="toggleMute()" id="muteBtn">🔇</button>
+        </div>
+    </div>
+
+    <!-- Question Screen -->
+    <div class="screen question-screen" id="questionScreen">
+        <div class="question-text">Will you be my Valentine? 💘</div>
+        <div class="side-note">(try to press no)</div>
+        <div class="buttons-container" id="buttonsContainer">
+            <div class="beg-text" id="begText"></div>
+            <button class="btn btn-yes" id="yesBtn" onclick="handleYes()">YES</button>
+            <button class="btn btn-no" id="noBtn" onclick="handleNo()">NO</button>
+        </div>
+    </div>
+
+    <!-- Thank You Screen -->
+    <div class="screen thank-you-screen" id="thankYouScreen" onclick="showLetter()">
+        <div class="thank-you-text">Thank you for saying yes!<br>You made me the happiest person alive! 🥰</div>
+        <div class="cat-gif-container">
+            <img src="https://media.tenor.com/KshIPrRS1aAAAAAM/cat-orange-cat.gif" alt="Happy Cat">
+        </div>
+        <div class="tap-hint"></div>
+    </div>
+
+    <!-- Letter Screen -->
+    <div class="screen letter-screen" id="letterScreen">
+        <div class="envelope-container" id="envelopeContainer">
+            <div class="envelope" id="envelope" onclick="openLetter()">
+                <div class="envelope-flap"></div>
+                <div class="envelope-body">
+                    <div class="envelope-text">Open Me 💌</div>
+                </div>
+            </div>
+            <div class="click-hint-envelope">Tap envelope to open</div>
+        </div>
+        
+        <div class="letter" id="letter">
+             <h2>Dear Sophia,</h2>
+            <p>
+                I'm so happy i get to spend valentines day with you this year. I know its not been 
+                long since we started talking—but from the moment I saw you, I knew I had to make you
+                mine.
+            </p>
+            <p>
+                Every moment with you feels like a beautiful dream I never want to wake up from. 
+               I love how every time we are together it feels like no time passed at all. I love how
+               we instantly click and although sometimes wala natay masturyahan, We still enjoy each other's
+               presence
+            </p>
+            <p>
+                I wanted to make our first valentine's day special, that's why I made you this hehe. I've wanted
+                to make something like this for you for quite a while, I wanted it to show my love for you in a 
+                more meaningful way.
+            </p>
+            <p>
+                Thank you for choosing me, and choosing to be with me not just this valentine's day, but for many months, 
+                or years to come. I am greatful to have you in my life and I love you very much sweetie, you da best.
+            </p>
+            <div class="letter-signature">
+                Your hunny,<br>
+                Bernie II
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScreen = 1;
+        let noCount = 0;
+        let noButtonMoved = false;
+        let noButtonTransformed = false;
+        const begMessages = [
+            "Pretty please? 🥺",
+            "Don't break my heart 💔",
+            "I'll be so sad... 😢",
+            "You're my everything! ✨",
+            "Fine... you win! Click me! 💝"
+        ];
+
+        // Generate floating hearts
+        function createHearts() {
+            const heartsContainer = document.getElementById('hearts');
+            const heartSymbols = ['💕', '💖', '💗', '💓', '💝', '❤️'];
+            
+            for (let i = 0; i < 12; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.innerHTML = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                heart.style.animationDelay = Math.random() * 5 + 's';
+                heart.style.fontSize = (Math.random() * 15 + 10) + 'px';
+                heartsContainer.appendChild(heart);
+            }
+        }
+
+        function init() {
+            createHearts();
+            animateScreen(1);
+            const video = document.getElementById('valentineVideo');
+            video.load();
+        }
+
+        function animateScreen(screenNum) {
+            const screen = document.getElementById(`screen${screenNum}`);
+            if (!screen) return;
+            
+            const message = screen.querySelector('.message');
+            const subMessage = screen.querySelector('.sub-message');
+            const gifContainer = screen.querySelector('.gif-container');
+            const arrow = screen.querySelector('.nav-arrow');
+
+            setTimeout(() => {
+                if (message) message.classList.add('visible');
+            }, 300);
+
+            if (subMessage) {
+                setTimeout(() => {
+                    subMessage.classList.add('visible');
+                }, 600);
+            }
+
+            if (gifContainer) {
+                setTimeout(() => {
+                    gifContainer.classList.add('visible');
+                }, 900);
+            }
+
+            if (arrow) {
+                setTimeout(() => {
+                    arrow.classList.add('visible');
+                }, 1500);
+            }
+        }
+
+        function nextScreen(nextNum) {
+            // Prevent multiple clicks
+            if (currentScreen >= nextNum) return;
+            
+            const current = document.getElementById(`screen${currentScreen}`);
+            const next = document.getElementById(`screen${nextNum}`);
+
+            current.classList.remove('active');
+            
+            const elements = current.querySelectorAll('.message, .sub-message, .gif-container, .nav-arrow');
+            elements.forEach(el => el.classList.remove('visible'));
+
+            setTimeout(() => {
+                next.classList.add('active');
+                currentScreen = nextNum;
+                animateScreen(nextNum);
+            }, 500);
+        }
+
+        function playVideo() {
+            const videoContainer = document.getElementById('videoContainer');
+            const video = document.getElementById('valentineVideo');
+            const loading = document.getElementById('loading');
+            const skipBtn = document.getElementById('skipBtn');
+            const playOverlay = document.getElementById('playOverlay');
+            
+            videoContainer.classList.add('active');
+            
+            // Show skip button after 3 seconds
+            setTimeout(() => {
+                skipBtn.classList.add('visible');
+            }, 3000);
+            
+            // AUTO PLAY with muted workaround
+            video.muted = true; // Required for autoplay
+            document.getElementById('muteBtn').innerHTML = '🔇';
+            
+            video.addEventListener('canplay', () => {
+                loading.style.display = 'none';
+                video.play().then(() => {
+                    // Show unmute button after playing
+                    setTimeout(() => {
+                        video.muted = false;
+                        document.getElementById('muteBtn').innerHTML = '🔊';
+                    }, 1000);
+                }).catch(e => {
+                    // If autoplay blocked, show play button
+                    playOverlay.classList.add('visible');
+                });
+            }, { once: true });
+
+            video.addEventListener('error', (e) => {
+                loading.textContent = 'Error loading video. Tap skip to continue.';
+                skipBtn.classList.add('visible');
+            });
+
+            video.addEventListener('timeupdate', updateProgress);
+            
+            // AUTO ADVANCE WHEN VIDEO ENDS
+            video.addEventListener('ended', () => {
+                setTimeout(() => {
+                    goToQuestion();
+                }, 500);
+            });
+        }
+
+        function skipVideo() {
+            event.stopPropagation();
+            const video = document.getElementById('valentineVideo');
+            video.pause();
+            goToQuestion();
+        }
+
+        function goToQuestion() {
+            document.getElementById('videoContainer').classList.remove('active');
+            document.getElementById('skipBtn').classList.remove('visible');
+            document.getElementById('playOverlay').classList.remove('visible');
+            document.getElementById('questionScreen').classList.add('active');
+            
+            // Reset no button
+            const noBtn = document.getElementById('noBtn');
+            noBtn.style.transform = 'none';
+            noBtn.style.opacity = '1';
+            noBtn.style.pointerEvents = 'auto';
+            noBtn.style.marginTop = '5px';
+            noBtn.classList.remove('transformed');
+            noBtn.textContent = 'NO';
+            noBtn.onclick = handleNo;
+            
+            noCount = 0;
+            noButtonMoved = false;
+            noButtonTransformed = false;
+            document.getElementById('begText').classList.remove('visible');
+            document.getElementById('yesBtn').style.transform = 'scale(1)';
+            document.getElementById('yesBtn').style.opacity = '1';
+            document.getElementById('yesBtn').style.pointerEvents = 'auto';
+        }
+
+        function togglePlay() {
+            event.stopPropagation();
+            const video = document.getElementById('valentineVideo');
+            const overlay = document.getElementById('playOverlay');
+            const btn = document.getElementById('playPauseBtn');
+            
+            if (video.paused) {
+                video.play();
+                overlay.classList.remove('visible');
+                btn.innerHTML = '⏸';
+            } else {
+                video.pause();
+                overlay.classList.add('visible');
+                btn.innerHTML = '▶️';
+            }
+        }
+
+        function toggleMute() {
+            event.stopPropagation();
+            const video = document.getElementById('valentineVideo');
+            video.muted = !video.muted;
+            document.getElementById('muteBtn').innerHTML = video.muted ? '🔇' : '🔊';
+        }
+
+        function updateProgress() {
+            const video = document.getElementById('valentineVideo');
+            if (video.duration) {
+                const progress = (video.currentTime / video.duration) * 100;
+                document.getElementById('progressFill').style.width = progress + '%';
+            }
+        }
+
+        function seek(e) {
+            e.stopPropagation();
+            const video = document.getElementById('valentineVideo');
+            const progressBar = e.currentTarget;
+            const clickPosition = (e.pageX - progressBar.getBoundingClientRect().left) / progressBar.offsetWidth;
+            if (video.duration) {
+                video.currentTime = clickPosition * video.duration;
+            }
+        }
+
+        // NO BUTTON LOGIC - TRANSFORMS TO YES AFTER 5 ATTEMPTS
+        function handleNo() {
+            event.stopPropagation();
+            
+            const noBtn = document.getElementById('noBtn');
+            const yesBtn = document.getElementById('yesBtn');
+            const begText = document.getElementById('begText');
+            
+            // Show begging text
+            if (noCount < begMessages.length) {
+                begText.textContent = begMessages[noCount];
+                begText.classList.add('visible');
+            }
+            
+            // On 5th attempt (index 4), transform NO to YES
+            if (noCount >= 4) {
+                // Transform NO button to YES
+                noBtn.textContent = 'YES';
+                noBtn.classList.add('transformed');
+                noBtn.onclick = handleYes; // Now acts as YES button
+                noButtonTransformed = true;
+                
+                // Hide the original YES button
+                yesBtn.style.opacity = '0';
+                yesBtn.style.pointerEvents = 'none';
+                
+                begText.textContent = "THERES NO OTHER OPTION! 😡";
+                
+                // Celebration animation
+                noBtn.style.animation = 'pulse 0.5s 3';
+                
+                noCount++;
+                return;
+            }
+            
+            // Normal movement for first 4 attempts
+            const container = document.getElementById('buttonsContainer');
+            const containerRect = container.getBoundingClientRect();
+            const yesRect = yesBtn.getBoundingClientRect();
+            
+            // Calculate safe movement that won't overlap with YES
+            let randomX, randomY;
+            let attempts = 0;
+            
+            do {
+                const maxMove = 180; // Large movement
+                randomX = (Math.random() - 0.5) * maxMove * 2;
+                randomY = 80 + (Math.random() * 100); // Always move DOWN, away from YES
+                
+                // Check if too close to YES button
+                const distance = Math.sqrt(randomX * randomX + randomY * randomY);
+                if (distance > 120 || attempts > 10) break;
+                attempts++;
+            } while (true);
+            
+            noBtn.style.transform = `translate(${randomX}px, ${randomY}px)`;
+            noButtonMoved = true;
+            
+            // Grow yes button
+            const scale = 1 + (noCount * 0.2);
+            yesBtn.style.transform = `scale(${scale})`;
+            
+            // Shrink no button
+            const shrink = Math.max(0.5, 1 - (noCount * 0.15));
+            noBtn.style.opacity = shrink;
+            
+            noCount++;
+        }
+
+        function handleYes() {
+            event.stopPropagation();
+            document.getElementById('questionScreen').classList.remove('active');
+            document.getElementById('thankYouScreen').classList.add('active');
+        }
+
+        function showLetter() {
+            document.getElementById('thankYouScreen').classList.remove('active');
+            document.getElementById('letterScreen').classList.add('active');
+        }
+
+        function openLetter() {
+            event.stopPropagation();
+            const envelope = document.getElementById('envelope');
+            const letter = document.getElementById('letter');
+            const container = document.getElementById('envelopeContainer');
+            
+            envelope.classList.add('open');
+            container.style.opacity = '0';
+            
+            setTimeout(() => {
+                letter.classList.add('show');
+            }, 500);
+        }
+
+        // Prevent double-tap zoom on mobile
+        document.addEventListener('dblclick', function(event) {
+            event.preventDefault();
+        }, { passive: false });
+
+        window.onload = init;
+    </script>
+</body>
+</html>
