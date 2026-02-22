@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Valentine's Surprise</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Floating Hearts Background -->
+    <div class="hearts" id="hearts"></div>
+
+    <!-- Screen 1 - CLICK ANYWHERE -->
+    <div class="screen active" id="screen1" onclick="nextScreen(2)">
+        <div class="message">Hi Babyyy! 💕</div>
+        <div class="click-hint"></div>
+    </div>
+
+    <!-- Screen 2 - CLICK ANYWHERE -->
+    <div class="screen" id="screen2" onclick="nextScreen(3)">
+        <div class="message">I'm here to ask you to be my valentine! 💝</div>
+        <div class="click-hint"></div>
+    </div>
+
+    <!-- Screen 3 - CLICK ANYWHERE -->
+    <div class="screen" id="screen3" onclick="playVideo()">
+        <div class="message">But before that, watch this short presentation first hehe 🎬</div>
+        <div class="sub-message">(I made this just for you)</div>
+        <div class="gif-container" id="gifContainer">
+            <img src="https://media.tenor.com/KshIPrRS1aAAAAAM/cat-orange-cat.gif" alt="Cute GIF">
+        </div>
+        <div class="click-hint"></div>
+    </div>
+
+    <!-- Video Container - AUTO PLAY -->
+    <div class="video-container" id="videoContainer">
+        <button class="skip-btn" id="skipBtn" onclick="skipVideo()">Skip ⏭</button>
+        <div class="loading" id="loading"></div>
+        <video id="valentineVideo" playsinline preload="auto" muted>
+            <source src="https://github.com/BernieIIAtacador/valentine-vid-and-shi/raw/refs/heads/main/REASONS%20WHY%20YOU%20SHOULD%20BE%20MY%20VALENTINE%20(1).mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+        
+        <div class="play-overlay" id="playOverlay" onclick="togglePlay()">
+            <div class="play-button">
+                <svg viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="video-controls">
+            <button class="control-btn" onclick="togglePlay()" id="playPauseBtn">⏸</button>
+            <div class="progress-bar" onclick="seek(event)">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <button class="control-btn" onclick="toggleMute()" id="muteBtn">🔇</button>
+        </div>
+    </div>
+
+    <!-- Question Screen -->
+    <div class="screen question-screen" id="questionScreen">
+        <div class="question-text">Will you be my Valentine? 💘</div>
+        <div class="side-note">(try to press no)</div>
+        <div class="buttons-container" id="buttonsContainer">
+            <div class="beg-text" id="begText"></div>
+            <button class="btn btn-yes" id="yesBtn" onclick="handleYes()">YES</button>
+            <button class="btn btn-no" id="noBtn" onclick="handleNo()">NO</button>
+        </div>
+    </div>
+
+    <!-- Thank You Screen -->
+    <div class="screen thank-you-screen" id="thankYouScreen" onclick="showLetter()">
+        <div class="thank-you-text">Thank you for saying yes!<br>You made me the happiest person alive! 🥰</div>
+        <div class="cat-gif-container">
+            <img src="https://media.tenor.com/KshIPrRS1aAAAAAM/cat-orange-cat.gif" alt="Happy Cat">
+        </div>
+        <div class="tap-hint"></div>
+    </div>
+
+    <!-- Letter Screen -->
+    <div class="screen letter-screen" id="letterScreen">
+        <div class="envelope-container" id="envelopeContainer">
+            <div class="envelope" id="envelope" onclick="openLetter()">
+                <div class="envelope-flap"></div>
+                <div class="envelope-body">
+                    <div class="envelope-text">Open Me 💌</div>
+                </div>
+            </div>
+            <div class="click-hint-envelope">Tap envelope to open</div>
+        </div>
+        
+        <div class="letter" id="letter">
+             <h2>Dear Sophia,</h2>
+            <p>
+                I'm so happy i get to spend valentines day with you this year. I know its not been 
+                long since we started talking—but from the moment I saw you, I knew I had to make you
+                mine.
+            </p>
+            <p>
+                Every moment with you feels like a beautiful dream I never want to wake up from. 
+               I love how every time we are together it feels like no time passed at all. I love how
+               we instantly click and although sometimes wala natay masturyahan, We still enjoy each other's
+               presence
+            </p>
+            <p>
+                I wanted to make our first valentine's day special, that's why I made you this hehe. I've wanted
+                to make something like this for you for quite a while, I wanted it to show my love for you in a 
+                more meaningful way.
+            </p>
+            <p>
+                Thank you for choosing me, and choosing to be with me not just this valentine's day, but for many months, 
+                or years to come. I am greatful to have you in my life and I love you very much sweetie, you da best.
+            </p>
+            <div class="letter-signature">
+                Your hunny,<br>
+                Bernie II
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentScreen = 1;
+        let noCount = 0;
+        let noButtonMoved = false;
+        let noButtonTransformed = false;
+        const begMessages = [
+            "Pretty please? 🥺",
+            "Don't break my heart 💔",
+            "I'll be so sad... 😢",
+            "You're my everything! ✨",
+            "Fine... you win! Click me! 💝"
+        ];
+
+        // Generate floating hearts
+        function createHearts() {
+            const heartsContainer = document.getElementById('hearts');
+            const heartSymbols = ['💕', '💖', '💗', '💓', '💝', '❤️'];
+            
+            for (let i = 0; i < 12; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.innerHTML = heartSymbols[Math.floor(Math.random() * heartSymbols.length)];
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                heart.style.animationDelay = Math.random() * 5 + 's';
+                heart.style.fontSize = (Math.random() * 15 + 10) + 'px';
+                heartsContainer.appendChild(heart);
+            }
+        }
+
+        function init() {
+            createHearts();
+            animateScreen(1);
+            const video = document.getElementById('valentineVideo');
+            video.load();
+        }
+
+        function animateScreen(screenNum) {
+            const screen = document.getElementById(`screen${screenNum}`);
+            if (!screen) return;
+            
+            const message = screen.querySelector('.message');
+            const subMessage = screen.querySelector('.sub-message');
+            const gifContainer = screen.querySelector('.gif-container');
+            const arrow = screen.querySelector('.nav-arrow');
+
+            setTimeout(() => {
+                if (message) message.classList.add('visible');
+            }, 300);
+
+            if (subMessage) {
+                setTimeout(() => {
+                    subMessage.classList.add('visible');
+                }, 600);
+            }
+
+            if (gifContainer) {
+                setTimeout(() => {
+                    gifContainer.classList.add('visible');
+                }, 900);
+            }
+
+            if (arrow) {
+                setTimeout(() => {
+                    arrow.classList.add('visible');
+                }, 1500);
+            }
+        }
+
+        function nextScreen(nextNum) {
+            // Prevent multiple clicks
+            if (currentScreen >= nextNum) return;
+            
+            const current = document.getElementById(`screen${currentScreen}`);
+            const next = document.getElementById(`screen${nextNum}`);
+
+            current.classList.remove('active');
+            
+            const elements = current.querySelectorAll('.message, .sub-message, .gif-container, .nav-arrow');
+            elements.forEach(el => el.classList.remove('visible'));
+
+            setTimeout(() => {
+                next.classList.add('active');
+                currentScreen = nextNum;
+                animateScreen(nextNum);
+            }, 500);
+        }
+
+        function playVideo() {
+            const videoContainer = document.getElementById('videoContainer');
+            const video = document.getElementById('valentineVideo');
+            const loading = document.getElementById('loading');
+            const skipBtn = document.getElementById('skipBtn');
+            const playOverlay = document.getElementById('playOverlay');
+            
+            videoContainer.classList.add('active');
+            
+            // Show skip button after 3 seconds
+            setTimeout(() => {
+                skipBtn.classList.add('visible');
+            }, 3000);
+            
+            // AUTO PLAY with muted workaround
+            video.muted = true; // Required for autoplay
+            document.getElementById('muteBtn').innerHTML = '🔇';
+            
+            video.addEventListener('canplay', () => {
+                loading.style.display = 'none';
+                video.play().then(() => {
+                    // Show unmute button after playing
+                    setTimeout(() => {
+                        video.muted = false;
+                        document.getElementById('muteBtn').innerHTML = '🔊';
+                    }, 1000);
+                }).catch(e => {
+                    // If autoplay blocked, show play button
+                    playOverlay.classList.add('visible');
+                });
+            }, { once: true });
+
+            video.addEventListener('error', (e) => {
+                loading.textContent = 'Error loading video. Tap skip to continue.';
+                skipBtn.classList.add('visible');
+            });
+
+            video.addEventListener('timeupdate', updateProgress);
+            
+            // AUTO ADVANCE WHEN VIDEO ENDS
+            video.addEventListener('ended', () => {
+                setTimeout(() => {
+                    goToQuestion();
+                }, 500);
+            });
+        }
+
+        function skipVideo() {
+            event.stopPropagation();
+            const video = document.getElementById('valentineVideo');
+            video.pause();
+            goToQuestion();
+        }
+
+        function goToQuestion() {
+            document.getElementById('videoContainer').classList.remove('active');
+            document.getElementById('skipBtn').classList.remove('visible');
+            document.getElementById('playOverlay').classList.remove('visible');
+            document.getElementById('questionScreen').classList.add('active');
+            
+            // Reset no button
+            const noBtn = document.getElementById('noBtn');
+            noBtn.style.transform = 'none';
+            noBtn.style.opacity = '1';
+            noBtn.style.pointerEvents = 'auto';
+            noBtn.style.marginTop = '5px';
+            noBtn.classList.remove('transformed');
+            noBtn.textContent = 'NO';
+            noBtn.onclick = handleNo;
+            
+            noCount = 0;
+            noButtonMoved = false;
+            noButtonTransformed = false;
+            document.getElementById('begText').classList.remove('visible');
+            document.getElementById('yesBtn').style.transform = 'scale(1)';
+            document.getElementById('yesBtn').style.opacity = '1';
+            document.getElementById('yesBtn').style.pointerEvents = 'auto';
+        }
+
+        function togglePlay() {
+            event.stopPropagation();
+            const video = document.getElementById('valentineVideo');
+            const overlay = document.getElementById('playOverlay');
+            const btn = document.getElementById('playPauseBtn');
+            
+            if (video.paused) {
+                video.play();
+                overlay.classList.remove('visible');
+                btn.innerHTML = '⏸';
+            } else {
+                video.pause();
+                overlay.classList.add('visible');
+                btn.innerHTML = '▶️';
+            }
+        }
+
+        function toggleMute() {
+            event.stopPropagation();
+            const video = document.getElementById('valentineVideo');
+            video.muted = !video.muted;
+            document.getElementById('muteBtn').innerHTML = video.muted ? '🔇' : '🔊';
+        }
+
+        function updateProgress() {
+            const video = document.getElementById('valentineVideo');
+            if (video.duration) {
+                const progress = (video.currentTime / video.duration) * 100;
+                document.getElementById('progressFill').style.width = progress + '%';
+            }
+        }
+
+        function seek(e) {
+            e.stopPropagation();
+            const video = document.getElementById('valentineVideo');
+            const progressBar = e.currentTarget;
+            const clickPosition = (e.pageX - progressBar.getBoundingClientRect().left) / progressBar.offsetWidth;
+            if (video.duration) {
+                video.currentTime = clickPosition * video.duration;
+            }
+        }
+
+        // NO BUTTON LOGIC - TRANSFORMS TO YES AFTER 5 ATTEMPTS
+        function handleNo() {
+            event.stopPropagation();
+            
+            const noBtn = document.getElementById('noBtn');
+            const yesBtn = document.getElementById('yesBtn');
+            const begText = document.getElementById('begText');
+            
+            // Show begging text
+            if (noCount < begMessages.length) {
+                begText.textContent = begMessages[noCount];
+                begText.classList.add('visible');
+            }
+            
+            // On 5th attempt (index 4), transform NO to YES
+            if (noCount >= 4) {
+                // Transform NO button to YES
+                noBtn.textContent = 'YES';
+                noBtn.classList.add('transformed');
+                noBtn.onclick = handleYes; // Now acts as YES button
+                noButtonTransformed = true;
+                
+                // Hide the original YES button
+                yesBtn.style.opacity = '0';
+                yesBtn.style.pointerEvents = 'none';
+                
+                begText.textContent = "THERES NO OTHER OPTION! 😡";
+                
+                // Celebration animation
+                noBtn.style.animation = 'pulse 0.5s 3';
+                
+                noCount++;
+                return;
+            }
+            
+            // Normal movement for first 4 attempts
+            const container = document.getElementById('buttonsContainer');
+            const containerRect = container.getBoundingClientRect();
+            const yesRect = yesBtn.getBoundingClientRect();
+            
+            // Calculate safe movement that won't overlap with YES
+            let randomX, randomY;
+            let attempts = 0;
+            
+            do {
+                const maxMove = 180; // Large movement
+                randomX = (Math.random() - 0.5) * maxMove * 2;
+                randomY = 80 + (Math.random() * 100); // Always move DOWN, away from YES
+                
+                // Check if too close to YES button
+                const distance = Math.sqrt(randomX * randomX + randomY * randomY);
+                if (distance > 120 || attempts > 10) break;
+                attempts++;
+            } while (true);
+            
+            noBtn.style.transform = `translate(${randomX}px, ${randomY}px)`;
+            noButtonMoved = true;
+            
+            // Grow yes button
+            const scale = 1 + (noCount * 0.2);
+            yesBtn.style.transform = `scale(${scale})`;
+            
+            // Shrink no button
+            const shrink = Math.max(0.5, 1 - (noCount * 0.15));
+            noBtn.style.opacity = shrink;
+            
+            noCount++;
+        }
+
+        function handleYes() {
+            event.stopPropagation();
+            document.getElementById('questionScreen').classList.remove('active');
+            document.getElementById('thankYouScreen').classList.add('active');
+        }
+
+        function showLetter() {
+            document.getElementById('thankYouScreen').classList.remove('active');
+            document.getElementById('letterScreen').classList.add('active');
+        }
+
+        function openLetter() {
+            event.stopPropagation();
+            const envelope = document.getElementById('envelope');
+            const letter = document.getElementById('letter');
+            const container = document.getElementById('envelopeContainer');
+            
+            envelope.classList.add('open');
+            container.style.opacity = '0';
+            
+            setTimeout(() => {
+                letter.classList.add('show');
+            }, 500);
+        }
+
+        // Prevent double-tap zoom on mobile
+        document.addEventListener('dblclick', function(event) {
+            event.preventDefault();
+        }, { passive: false });
+
+        window.onload = init;
+    </script>
+</body>
+</html>
